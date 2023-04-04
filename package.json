@@ -5,7 +5,8 @@
   "main": "server/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "rm -r ./dist && tsc --project ./ && cp -r ./assets ./dist && node ./dist"
+    "prestart": "rm -rf ./dist",
+    "start": "tsc --project ./ && cp -r ./assets ./dist && node ./dist"
   },
   "author": "",
   "license": "ISC",

@@ -1,77 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
-import { Types } from "mongoose";
-import { mock } from "node:test";
 import { BadRequestError } from "../common/errors/bad-request-error";
 import { NotAuthorizedError } from "../common/errors/not-authorized-error";
-import { RequestValidationError } from "../common/errors/request-validation-error";
 import { validateRequest } from "../common/middlewares/validate-request";
-import { isEditable, metadataCatalog } from "../metadata/catalog";
 import { mockData } from "../mockData/catalog";
 import { Pou, PouDoc } from "../models/pou";
+import { checkFoodStatus } from "./src/pou/status";
+import { updatePouFood, updatePouFoodCapacity } from "./src/pou/updates";
 
 const express = require("express");
 
 const router = express.Router();
-// Store requests
-
-const updatePouCapacity = async (pou: PouDoc, newCapacity: number) => {
-  pou.set("feedCapacity", newCapacity);
-  await pou.save();
-};
-
-const updatePouFood = async (pou: PouDoc, amountFeeded: number) => {
-  console.log("pou.feedHistory: ", pou.feedHistory);
-  const feedHistory = pou.feedHistory.sort((a, b) => a.date - b.date);
-
-  const lastFeedHistory = feedHistory[feedHistory.length - 1]!;
-
-  feedHistory.push({
-    amountFeeded,
-    date: Date.now(),
-    food: lastFeedHistory.food + amountFeeded,
-  });
-
-  pou.set("feedHistory", feedHistory);
-  await pou.save();
-
-  return pou;
-};
-
-/**
- * Think how to:
- * Reusable Support different kinds of capacity/consumables
- * Reusable Support different functions of capacities/consumables
- */
-
-const checkFeedStatus = async (userId: string, next: NextFunction) => {
-  const pou = await Pou.findOne({ userId });
-  if (!pou) {
-    return next(new BadRequestError("Already assigned Pou"));
-  }
-  const sortedFeedHistory = pou.feedHistory.sort((a, b) => a.date - b.date);
-
-  const lastFeedHistory = sortedFeedHistory[sortedFeedHistory.length - 1]!;
-
-  console.log("lastFeedHistory: ", lastFeedHistory);
-  const { amountFeeded, date, food } = lastFeedHistory;
-
-  const TIME_TO_HUNGRY = 60000;
-  if (Date.now() - date > TIME_TO_HUNGRY) {
-    await updatePouFood(pou, -10);
-  }
-
-  const TIME_TO_CAPACITY = 30000;
-  if (Date.now() - date > TIME_TO_HUNGRY) {
-    await updatePouCapacity(pou, pou.feedCapacity + 10);
-  }
-
-  return pou;
-  /*
-
-  
-   */
-};
 
 router.get(
   "/pou/stats",
@@ -81,11 +20,11 @@ router.get(
       return next(new NotAuthorizedError());
     }
 
-    const pou = await checkFeedStatus(currentUser.id, next);
+    const pou = await checkFoodStatus(currentUser.id, next);
 
-    const { feedHistory, name, userId, feedCapacity } = pou as PouDoc;
+    const { food, name, userId, foodCapacity } = pou as PouDoc;
 
-    res.send(JSON.stringify({ name, userId, feedHistory, feedCapacity }));
+    res.send(JSON.stringify({ name, userId, food, foodCapacity }));
   }
 );
 
@@ -97,34 +36,20 @@ router.post(
       return next(new NotAuthorizedError());
     }
 
-    const pou = (await checkFeedStatus(currentUser.id, next)) as PouDoc;
+    const pou = (await checkFoodStatus(currentUser.id, next)) as PouDoc;
 
-    const { feedHistory, name, userId, feedCapacity } = pou;
+    const { food, name, userId, foodCapacity } = pou;
+    const lastFoodCapacity = foodCapacity[foodCapacity.length - 1];
 
     const DEFAULT_FEED_AMOUNT = 10;
 
-    if (feedCapacity >= DEFAULT_FEED_AMOUNT) {
+    if (lastFoodCapacity.consumable >= DEFAULT_FEED_AMOUNT) {
       await updatePouFood(pou, DEFAULT_FEED_AMOUNT);
-      await updatePouCapacity(pou, pou.feedCapacity - DEFAULT_FEED_AMOUNT);
+      await updatePouFoodCapacity(pou, -DEFAULT_FEED_AMOUNT);
+      await pou.save();
     }
 
-    res.send(JSON.stringify({ name, userId, feedHistory, feedCapacity }));
-  }
-);
-
-router.get(
-  "/pou/stats",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { currentUser } = req;
-    if (!currentUser) {
-      return next(new NotAuthorizedError());
-    }
-
-    const pou = await checkFeedStatus(currentUser.id, next)!;
-
-    const { feedHistory, name, userId, feedCapacity } = pou as PouDoc;
-
-    res.send(JSON.stringify({ name, userId, feedHistory, feedCapacity }));
+    res.send(JSON.stringify({ name, userId, food, foodCapacity }));
   }
 );
 
@@ -149,20 +74,20 @@ router.post(
     const defaultPouData = {
       name: "Pou",
       userId: currentUser.id,
-      feedCapacity: 20,
-      feedHistory: [{ food: 100, amountFeeded: 100, date: Date.now() }],
+      foodCapacity: [{ consumable: 10, increase: 10, date: Date.now() }],
+      food: [{ consumable: 100, increase: 100, date: Date.now() }],
     };
     const pouData = {
       name: "",
       userId: "",
-      feedCapacity: 0,
-      feedHistory: [],
+      foodCapacity: [],
+      food: [],
     };
     const isEditable = {
       name: true,
       userId: false,
-      feedCapacity: false,
-      feedHistory: false,
+      foodCapacity: false,
+      food: false,
     };
 
     Object.assign(pouData, defaultPouData);
@@ -174,6 +99,8 @@ router.post(
 
     // Update db
     (mockData as any).unshift(pouData);
+
+    console.log("pouData: ", JSON.stringify(pouData));
 
     const newPou = Pou.build(pouData);
     await newPou.save();
