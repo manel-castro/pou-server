@@ -4,6 +4,9 @@ import { app } from "./app";
 process.env.JWT_KEY = "JSON_WEB_TOKEN_KEY";
 
 const start = async () => {
+  /**
+   * MongoDB Atlas conection
+   */
   try {
     await mongoose.connect(
       "mongodb+srv://cluster0.bzo9wnv.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority",
@@ -23,6 +26,10 @@ const start = async () => {
   } catch (e) {
     console.log("error: ", e);
   }
+
+  /**
+   * Express listener
+   */
   app.listen(3000, () => {
     console.log("listening to 3000. http://localhost:3000");
   });

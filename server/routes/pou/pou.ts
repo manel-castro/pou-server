@@ -1,52 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
-import { BadRequestError } from "../common/errors/bad-request-error";
-import { NotAuthorizedError } from "../common/errors/not-authorized-error";
-import { validateRequest } from "../common/middlewares/validate-request";
-import { mockData } from "../mockData/catalog";
-import { Pou, PouDoc } from "../models/pou";
-import { foodRefiller } from "./src/pou/refills";
-import { checkFoodStatus } from "./src/pou/status";
-import { updatePouFood, updatePouFoodCapacity } from "./src/pou/updates";
+import { BadRequestError } from "../../common/errors/bad-request-error";
+import { NotAuthorizedError } from "../../common/errors/not-authorized-error";
+import { validateRequest } from "../../common/middlewares/validate-request";
+import { mockData } from "../../mockData/catalog";
+import { Pou } from "../../models/pou";
 
 const express = require("express");
 
 const router = express.Router();
-
-router.get(
-  "/pou/stats",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { currentUser } = req;
-    if (!currentUser) {
-      return next(new NotAuthorizedError());
-    }
-
-    const pou = await checkFoodStatus(currentUser.id, next);
-
-    const { food, name, userId, foodCapacity } = pou as PouDoc;
-
-    res.send({ name, userId, food, foodCapacity });
-  }
-);
-
-router.post(
-  "/pou/feed",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { currentUser } = req;
-    if (!currentUser) {
-      return next(new NotAuthorizedError());
-    }
-
-    const pou = (await checkFoodStatus(currentUser.id, next)) as PouDoc;
-    foodRefiller({ pou });
-
-    await pou.save();
-
-    const { food, name, userId, foodCapacity } = pou;
-
-    res.send({ name, userId, food, foodCapacity });
-  }
-);
 
 router.post(
   "/pou",
@@ -104,4 +66,4 @@ router.post(
   }
 );
 
-export { router as catalogRouter };
+export { router as pouRouter };
