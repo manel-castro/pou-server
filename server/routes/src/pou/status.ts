@@ -47,13 +47,7 @@ export const checkStatus = async ({
     await updatePouFoodCapacity(pou, +10 * ammountOfUpdate);
   }
 
-  await pou.save();
-
   return pou;
-  /*
-
-  
-   */
 };
 
 export const checkFoodStatus = async (userId: string, next: NextFunction) => {

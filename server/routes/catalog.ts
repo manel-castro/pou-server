@@ -5,6 +5,7 @@ import { NotAuthorizedError } from "../common/errors/not-authorized-error";
 import { validateRequest } from "../common/middlewares/validate-request";
 import { mockData } from "../mockData/catalog";
 import { Pou, PouDoc } from "../models/pou";
+import { foodRefiller } from "./src/pou/refills";
 import { checkFoodStatus } from "./src/pou/status";
 import { updatePouFood, updatePouFoodCapacity } from "./src/pou/updates";
 
@@ -24,7 +25,7 @@ router.get(
 
     const { food, name, userId, foodCapacity } = pou as PouDoc;
 
-    res.send(JSON.stringify({ name, userId, food, foodCapacity }));
+    res.send({ name, userId, food, foodCapacity });
   }
 );
 
@@ -37,19 +38,13 @@ router.post(
     }
 
     const pou = (await checkFoodStatus(currentUser.id, next)) as PouDoc;
+    foodRefiller({ pou });
+
+    await pou.save();
 
     const { food, name, userId, foodCapacity } = pou;
-    const lastFoodCapacity = foodCapacity[foodCapacity.length - 1];
 
-    const DEFAULT_FEED_AMOUNT = 10;
-
-    if (lastFoodCapacity.consumable >= DEFAULT_FEED_AMOUNT) {
-      await updatePouFood(pou, DEFAULT_FEED_AMOUNT);
-      await updatePouFoodCapacity(pou, -DEFAULT_FEED_AMOUNT);
-      await pou.save();
-    }
-
-    res.send(JSON.stringify({ name, userId, food, foodCapacity }));
+    res.send({ name, userId, food, foodCapacity });
   }
 );
 
@@ -105,7 +100,7 @@ router.post(
     const newPou = Pou.build(pouData);
     await newPou.save();
 
-    res.send(JSON.stringify(pouData));
+    res.send(pouData);
   }
 );
 
