@@ -10,7 +10,7 @@ export interface historicInterface {
   consumable: number;
 }
 
-const updateLastHistoricValue = async ({
+export const updateLastHistoricValue = async ({
   pou,
   key,
   increase,
@@ -21,20 +21,38 @@ const updateLastHistoricValue = async ({
 }) => {
   const history = pou.get(key) as historicInterface[];
 
-  const sortedHistory = history.sort((a, b) => a.date - b.date);
+  let sortedHistory = history.sort((a, b) => a.date - b.date);
 
   const lastHistory = sortedHistory[sortedHistory.length - 1]!;
 
-  sortedHistory.push({
-    date: Date.now(),
-    increase,
-    consumable: lastHistory.consumable + increase,
-  });
+  // sortedHistory.push({
+  //   date: Date.now(),
+  //   increase,
+  //   consumable: lastHistory.consumable + increase,
+  // });
+  console.log("increase", increase);
+
+  sortedHistory = [
+    {
+      date: Date.now(),
+      increase: increase,
+      consumable: lastHistory.consumable + increase,
+    },
+  ];
+
+  console.log("lastHistory.consumable:", lastHistory.consumable);
+  console.log("consumable:", lastHistory.consumable + increase);
+
+  console.log("sortedHistory");
+  console.log(JSON.stringify(sortedHistory));
 
   pou.set(key, sortedHistory);
   // await pou.save();
 };
 
+/**
+ * POU FOOD UPDATERS
+ */
 export const updatePouFood = async (pou: PouDoc, amountFeeded: number) => {
   await updateLastHistoricValue({ pou, key: "food", increase: amountFeeded });
 };
@@ -45,6 +63,23 @@ export const updatePouFoodCapacity = async (
   await updateLastHistoricValue({
     pou,
     key: "foodCapacity",
+    increase: amountCapacity,
+  });
+};
+
+/**
+ * POU CLEAN UPDATERS
+ */
+export const updatePouClean = async (pou: PouDoc, amountFeeded: number) => {
+  await updateLastHistoricValue({ pou, key: "clean", increase: amountFeeded });
+};
+export const updatePouCleanCapacity = async (
+  pou: PouDoc,
+  amountCapacity: number
+) => {
+  await updateLastHistoricValue({
+    pou,
+    key: "cleanCapacity",
     increase: amountCapacity,
   });
 };

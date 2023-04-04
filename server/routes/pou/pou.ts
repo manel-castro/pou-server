@@ -4,11 +4,17 @@ import { BadRequestError } from "../../common/errors/bad-request-error";
 import { NotAuthorizedError } from "../../common/errors/not-authorized-error";
 import { validateRequest } from "../../common/middlewares/validate-request";
 import { mockData } from "../../mockData/catalog";
-import { Pou } from "../../models/pou";
+import { Pou, PouDoc } from "../../models/pou";
 
 const express = require("express");
 
 const router = express.Router();
+
+export const defaultResponse = ({ pou }: { pou: PouDoc }) => {
+  const { clean, name, userId, cleanCapacity, food, foodCapacity } = pou;
+
+  return { name, userId, clean, cleanCapacity, food, foodCapacity };
+};
 
 router.post(
   "/pou",
@@ -33,18 +39,24 @@ router.post(
       userId: currentUser.id,
       foodCapacity: [{ consumable: 10, increase: 10, date: Date.now() }],
       food: [{ consumable: 100, increase: 100, date: Date.now() }],
+      cleanCapacity: [{ consumable: 10, increase: 10, date: Date.now() }],
+      clean: [{ consumable: 100, increase: 100, date: Date.now() }],
     };
     const pouData = {
       name: "",
       userId: "",
       foodCapacity: [],
       food: [],
+      cleanCapacity: [],
+      clean: [],
     };
     const isEditable = {
       name: true,
       userId: false,
       foodCapacity: false,
       food: false,
+      cleanCapacity: false,
+      clean: false,
     };
 
     Object.assign(pouData, defaultPouData);

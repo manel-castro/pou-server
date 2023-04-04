@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { BadRequestError } from "../common/errors/bad-request-error";
 import { currentUser } from "../common/middlewares/current-user";
 import { validateRequest } from "../common/middlewares/validate-request";
+import { Inventory, InventoryDoc } from "../models/inventory";
 import { User } from "../models/user";
 import { Password } from "../services/password";
 
@@ -37,7 +38,6 @@ router.post(
     }
 
     const user = User.build({ email, password });
-
     await user.save();
 
     const userJwt = jwt.sign(
@@ -49,6 +49,27 @@ router.post(
     );
 
     req.session = { jwt: userJwt };
+
+    /**
+     * Create user inventory
+     */
+    let userInventory = (await Inventory.findOne({
+      userId: user.id,
+    })) as InventoryDoc;
+
+    if (!userInventory) {
+      userInventory = await Inventory.build({
+        /**
+         * Defaults for new inventory
+         * TODO: refactor
+         */
+        userId: user.id,
+        coins: 100,
+        foodInventory: [],
+      });
+      await userInventory.save();
+    }
+
     res.status(201).send(user);
   }
 );

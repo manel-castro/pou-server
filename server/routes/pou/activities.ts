@@ -10,7 +10,7 @@ const express = require("express");
 const router = express.Router();
 
 router.get(
-  "/pou/stats",
+  "/pou/petting",
   checkPou,
   async (req: RequestPou, res: Response, next: NextFunction) => {
     const { currentUser } = req;

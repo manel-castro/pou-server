@@ -3,6 +3,7 @@ import cors from "cors";
 import { currentUser } from "./common/middlewares/current-user";
 import { errorHandler } from "./common/middlewares/error-handler";
 import { foodRouter } from "./routes/pou/food";
+import { marketRouter } from "./routes/market";
 import { pouRouter } from "./routes/pou/pou";
 import { statusRouter } from "./routes/pou/status";
 import { userRouter } from "./routes/user";
@@ -40,6 +41,7 @@ app.use(currentUser);
 app.use(pouRouter);
 app.use(foodRouter);
 app.use(statusRouter);
+app.use(marketRouter);
 
 /**
  * User Routers

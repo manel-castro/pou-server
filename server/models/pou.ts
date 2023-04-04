@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
-import { historicInterface } from "../routes/src/pou/updates";
+import { historicInterface } from "../routes/pou/src/updates";
 
 interface PouAttrs {
   userId: string;
   name: string;
   foodCapacity: historicInterface[];
   food: historicInterface[];
+  cleanCapacity: historicInterface[];
+  clean: historicInterface[];
 }
 
 interface PouModel extends mongoose.Model<PouDoc> {
@@ -17,6 +19,8 @@ export interface PouDoc extends mongoose.Document {
   name: string;
   foodCapacity: historicInterface[];
   food: historicInterface[];
+  cleanCapacity: historicInterface[];
+  clean: historicInterface[];
 }
 
 const pouSchema = new mongoose.Schema(
@@ -34,6 +38,14 @@ const pouSchema = new mongoose.Schema(
       required: true,
     },
     food: {
+      type: Array,
+      required: true,
+    },
+    cleanCapacity: {
+      type: Array,
+      required: true,
+    },
+    clean: {
       type: Array,
       required: true,
     },
