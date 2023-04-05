@@ -37,6 +37,7 @@ router.post(
     const defaultPouData = {
       name: "Pou",
       userId: currentUser.id,
+      pettings: 0,
       foodCapacity: [{ consumable: 10, increase: 10, date: Date.now() }],
       food: [{ consumable: 100, increase: 100, date: Date.now() }],
       cleanCapacity: [{ consumable: 10, increase: 10, date: Date.now() }],
@@ -45,6 +46,7 @@ router.post(
     const pouData = {
       name: "",
       userId: "",
+      pettings: 0,
       foodCapacity: [],
       food: [],
       cleanCapacity: [],
@@ -53,6 +55,7 @@ router.post(
     const isEditable = {
       name: true,
       userId: false,
+      pettings: false,
       foodCapacity: false,
       food: false,
       cleanCapacity: false,
