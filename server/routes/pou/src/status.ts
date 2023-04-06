@@ -2,13 +2,8 @@ import { PouDoc } from "../../../models/pou";
 import { historicInterface, updateLastHistoricValue } from "./updates";
 
 /**
- * Things todo: 
- 
- 
- * -) Currency
+ * Things todo:
  * -) Front-end
- * -) Kinds of food editable from endpoint (make a separate mongodb document)
- * -) Ways of earning coins
  */
 
 /**

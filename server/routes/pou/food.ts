@@ -27,11 +27,13 @@ router.post(
     }
 
     const { pou } = req;
+
     const { item } = req.body;
 
     /**
      * Find users inventory
      */
+    // try {
     const inventory = await Inventory.findOne({ userId: currentUser.id })!;
 
     if (!inventory) {
@@ -61,9 +63,16 @@ router.post(
 
     foodRefiller({ pou, feedAmount: itemToUse.feedCapacity });
 
-    await pou.save();
+    try {
+      await pou.save();
+    } catch (e) {
+      console.log("error:", e);
+    }
 
     res.send({ pou, inventory });
+    // } catch (e) {
+    //   console.log("error: ", e);
+    // }
   }
 );
 router.post(

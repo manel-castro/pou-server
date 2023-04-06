@@ -22,15 +22,18 @@ export const checkPou = async (
   if (!currentUser) {
     return next(new NotAuthorizedError());
   }
+  try {
+    const pou = await Pou.findOne({ userId: currentUser.id });
+    if (!pou) {
+      return next(new BadRequestError("Pou not assigned yet"));
+    }
 
-  const pou = await Pou.findOne({ userId: currentUser.id });
-  if (!pou) {
-    return next(new BadRequestError("Pou not assigned yet"));
+    await checkStatuses(pou);
+
+    req.pou = pou;
+  } catch (e) {
+    console.log("error: ", e);
   }
-
-  await checkStatuses(pou);
-
-  req.pou = pou;
 
   next();
 };

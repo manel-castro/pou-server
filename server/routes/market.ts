@@ -20,8 +20,22 @@ const itemsStore = [
   },
 ];
 
+router.get(
+  "/market/inventory",
+  async (req: RequestPou, res: Response, next: NextFunction) => {
+    const { currentUser } = req;
+    if (!currentUser) {
+      return next(new NotAuthorizedError());
+    }
+    let userInventory = (await Inventory.findOne({
+      userId: currentUser.id,
+    })) as InventoryDoc;
+
+    res.send(userInventory);
+  }
+);
 router.post(
-  "/pou/buy",
+  "/market/buy",
   checkPou,
   [body("item").isString()],
   validateRequest,
